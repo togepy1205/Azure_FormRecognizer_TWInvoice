@@ -4,8 +4,9 @@
 # In[ ]:
 
 
-# by url
-def formrecognizer_by_url(LinkUrl):
+# by local
+
+def formrecognizer_by_local(local_image_path):
     import os
     from azure.core.exceptions import ResourceNotFoundError
     from azure.ai.formrecognizer import FormRecognizerClient
@@ -18,17 +19,19 @@ def formrecognizer_by_url(LinkUrl):
 
     # call API
     form_recognizer_client = FormRecognizerClient(endpoint, AzureKeyCredential(key))
-    trained_model_id = "73bebc87-1c6d-44da-84a1-ef7ed9a6a4a1" # You can change to your model.
+    trained_model_id = "240e58da-7514-4e22-9ac4-efd6705d8280" # You can change to your model.
 
+    # image location
+    local_image_path = os.getcwd() + '/photo/test/xxxx.jpg' # Your image route
 
-    # URL
-    formUrl = LinkUrl
+    # open image (binary)
+    local_image = open(local_image_path, "rb")
 
-    poller = form_recognizer_client.begin_recognize_custom_forms_from_url(
-        model_id=trained_model_id, form_url=formUrl)
+    poller = form_recognizer_client.begin_recognize_custom_forms(model_id=trained_model_id, form=local_image)
     result = poller.result()
 
     output = {}
+
 
     for recognized_form in result:
         print("Form type: {}".format(recognized_form.form_type))
@@ -38,12 +41,13 @@ def formrecognizer_by_url(LinkUrl):
                 output[name]= str(field.value)
             else:
                 output[name].append(field.value)
+                return output
 
     output["年份"] = output["年份"].replace(' 年','')
     output["月份"] = output["月份"].replace(' 月','').replace('-','')
     output["發票號碼"] = output["發票號碼"][-8:]
     output["日期"] = output["年份"]+output["月份"]
     return output
-
+    
 if __name__ == '__main()__':
-    formrecognizer_by_url(LinkUrl)
+    formrecognizer_by_local(local_image_path)
